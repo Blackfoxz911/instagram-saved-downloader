@@ -31,17 +31,7 @@ You save posts on Instagram all the time: recipes, travel spots, design ideas, w
 
 **Instagram Saved Downloader** copies every saved photo and video to your computer and **mirrors your Saved collections as folders**. After the first run it only fetches what's new, so you can let it **sync once a day** in the background and forget about it.
 
-```
-Downloads/
-└── Instagram Saved/
-    ├── Recipes/
-    │   ├── 2026-11-20_chefmaya_DAbC123xyz.jpg
-    │   ├── 2026-11-18_homecook_DXyZ987abc_01.jpg   ← carousel slides get _01, _02…
-    │   └── 2026-11-18_homecook_DXyZ987abc_02.mp4
-    ├── Travel Ideas/
-    ├── Design Inspo/
-    └── Unsorted/                                   ← saved posts that aren't in a collection
-```
+
 
 ## 📸 Screenshots
 
