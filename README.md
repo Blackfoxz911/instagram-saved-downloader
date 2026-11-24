@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.png" alt="Instagram Saved Downloader" width="100%">
+  <img src="banner.png" alt="Instagram Saved Downloader" width="100%">
 </p>
 
 <h1 align="center">Instagram Saved Downloader</h1>
@@ -46,7 +46,7 @@ Downloads/
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots.png" alt="Popup screenshots: up to date, syncing, and dark mode" width="100%">
+  <img src="screenshots.png" alt="Popup screenshots: up to date, syncing, and dark mode" width="100%">
 </p>
 
 <sub>Screenshots show sample data.</sub>
@@ -54,7 +54,7 @@ Downloads/
 ## 🧠 How it works
 
 <p align="center">
-  <img src="docs/how-it-works.png" alt="How it works: reads your collections, finds what's new, downloads and sorts" width="100%">
+  <img src="how-it-works.png" alt="How it works: reads your collections, finds what's new, downloads and sorts" width="100%">
 </p>
 
 1. **Reads your collections.** It uses the Instagram login you already have in Chrome. Your password never touches the extension.
@@ -154,13 +154,13 @@ Only photos and videos are downloaded for now.
 ## 🛠️ Under the hood
 
 ```
-manifest.json   Extension config (Manifest V3)
-background.js   Sync engine: collection reading, paging, download tracking, daily schedule
-popup.html      Popup layout
-popup.css       Popup styles, light and dark
-popup.js        Popup logic
-icons/          Extension icons
-docs/           README images
+manifest.json          Extension config (Manifest V3)
+background.js          Sync engine: collection reading, paging, download tracking, daily schedule
+popup.html             Popup layout
+popup.css              Popup styles, light and dark
+popup.js               Popup logic
+icon16/32/48/128.png   Extension icons
+banner.png, screenshots.png, how-it-works.png   README images
 ```
 
 - Uses the same internal web API that instagram.com itself uses, called from an instagram.com tab so it runs on your existing session.
