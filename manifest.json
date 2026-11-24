@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Instagram Saved Downloader",
+  "version": "1.0.0",
+  "description": "Download your saved Instagram posts into one folder per collection, skipping anything already downloaded.",
+  "permissions": ["storage", "unlimitedStorage", "downloads", "alarms", "scripting"],
+  "host_permissions": ["https://www.instagram.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Instagram Saved Downloader",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
