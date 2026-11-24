@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Instagram Saved Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon48.png" alt="" width="28" height="28">
+    <h1>Saved Downloader</h1>
+  </header>
+
+  <section class="card" id="statusCard">
+    <div class="status-line">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusTitle">Ready</span>
+    </div>
+    <p id="statusMessage" class="muted">Press Sync to download your saved posts.</p>
+    <p id="runCounts" class="counts" hidden></p>
+    <p id="lastSync" class="muted small"></p>
+  </section>
+
+  <div class="actions">
+    <button id="syncBtn" class="primary">Sync now</button>
+    <button id="stopBtn" class="secondary" hidden>Stop</button>
+  </div>
+
+  <label class="toggle">
+    <input type="checkbox" id="autoSync">
+    <span>Sync automatically once a day</span>
+  </label>
+  <p class="muted small hint">Runs while Chrome is open and you're logged in to Instagram.</p>
+
+  <section>
+    <h2>Downloaded <span id="totalCount" class="muted"></span></h2>
+    <ul id="folderList" class="folders"><li class="muted">Nothing downloaded yet.</li></ul>
+  </section>
+
+  <details>
+    <summary>Settings &amp; history</summary>
+    <label class="field">
+      <span>Instagram username <span class="muted">(detected automatically)</span></span>
+      <input type="text" id="username" spellcheck="false" placeholder="detected on first sync">
+    </label>
+    <label class="field">
+      <span>Folder inside Downloads</span>
+      <input type="text" id="baseFolder" spellcheck="false">
+    </label>
+    <div class="grid">
+      <button id="fullScanBtn" class="secondary" title="Read every page of every collection instead of stopping at the first page with nothing new. Already-downloaded posts are still skipped.">Full re-check</button>
+      <button id="exportBtn" class="secondary" title="Save the list of downloaded posts, so a reinstall doesn't download everything again.">Export history</button>
+      <button id="importBtn" class="secondary">Import history</button>
+      <button id="resetBtn" class="danger" title="Forget which posts were downloaded. Files on disk are not touched.">Reset history</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <p id="settingsNote" class="muted small"></p>
+  </details>
+
+  <script src="popup.js"></script>
+</body>
+</html>
