@@ -45,7 +45,8 @@ async function render() {
   const state = running ? 'running' : (status.state === 'running' ? 'error' : status.state);
 
   $('statusDot').className = 'dot ' + (state || '');
-  $('statusTitle').textContent = STATE_TITLES[state] || 'Ready';
+  const hasIssues = state === 'done' && status.run && (status.run.failed || status.run.skipped);
+  $('statusTitle').textContent = hasIssues ? 'Done, with issues' : (STATE_TITLES[state] || 'Ready');
   $('statusMessage').textContent = status.message || 'Press Sync to download your saved posts.';
 
   const run = status.run;
@@ -54,7 +55,6 @@ async function render() {
     if (run.moved) bits.push(`${run.moved} moved`);
     if (run.failed) bits.push(`${run.failed} failed`);
     $('runCounts').textContent = (state === 'running' ? 'This sync: ' : 'Last sync: ') + bits.join(' · ');
-    $('runCounts').title = run.lastFailure ? `Last failure: ${run.lastFailure}` : '';
     $('runCounts').hidden = false;
   } else {
     $('runCounts').hidden = true;
@@ -66,11 +66,13 @@ async function render() {
   $('stopBtn').hidden = !running;
   $('fullScanBtn').disabled = !!running;
 
-  // Folder counts
+  // Folder counts (posts set aside as undownloadable are listed separately)
   const counts = new Map();
+  const setAside = [];
   let total = 0;
   for (const [key, rec] of Object.entries(all)) {
     if (!key.startsWith(POST_PREFIX)) continue;
+    if (rec && rec.skipped) { setAside.push(rec); continue; }
     total++;
     const folder = (rec && rec.folder) || 'Unsorted';
     counts.set(folder, (counts.get(folder) || 0) + 1);
@@ -102,6 +104,42 @@ async function render() {
     }
   }
   $('totalCount').textContent = total ? `(${total})` : '';
+  renderProblems(setAside, (run && run.problems) || []);
+}
+
+function renderProblems(setAside, runProblems) {
+  const retrying = runProblems.filter((p) => !p.final && !setAside.some((s) => s.id === p.id));
+  const rows = [
+    ...retrying.map((p) => ({ code: p.code, username: null, reason: p.reason, tag: 'will retry' })),
+    ...setAside.map((r) => ({ code: r.code, username: r.username, reason: r.reason, tag: 'set aside' })),
+  ];
+  $('problemsBox').hidden = rows.length === 0;
+  if (!rows.length) return;
+  $('problemsSummary').textContent = `${rows.length} post${rows.length === 1 ? '' : 's'} couldn't be downloaded`;
+  const list = $('problemsList');
+  list.textContent = '';
+  for (const row of rows.slice(0, 200)) {
+    const li = document.createElement('li');
+    const label = row.username ? `@${row.username}` : (row.code || 'post');
+    if (row.code) {
+      const a = document.createElement('a');
+      a.href = `https://www.instagram.com/p/${encodeURIComponent(row.code)}/`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = label;
+      li.append(a);
+    } else {
+      li.append(document.createTextNode(label));
+    }
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = row.tag;
+    const reason = document.createElement('div');
+    reason.className = 'muted';
+    reason.textContent = row.reason || 'Unknown error';
+    li.append(tag, reason);
+    list.append(li);
+  }
 }
 
 let renderTimer = null;

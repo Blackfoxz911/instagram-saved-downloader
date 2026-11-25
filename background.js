@@ -367,7 +367,11 @@ async function downloadAndWait(url, filename) {
 
 async function downloadPost(media, folderName, settings) {
   const files = mediaFiles(media);
-  if (!files.length) throw new Error('No photo or video found in this post.');
+  if (!files.length) {
+    const err = new Error('No photo or video available (the post may have been deleted or its account made private).');
+    err.permanent = true;
+    throw err;
+  }
   const dir = `${sanitize(settings.baseFolder, DEFAULT_SETTINGS.baseFolder)}/${sanitize(folderName)}`;
   const base = baseName(media);
   return Promise.all(files.map(async (file, i) => {
@@ -389,6 +393,7 @@ async function removeOldFiles(record) {
 /* -------------------------------------------------------------------- sync */
 
 const LOGIN_MESSAGE = 'You are not logged in to Instagram in this Chrome profile. Open instagram.com, log in, then sync again.';
+const MAX_ATTEMPTS = 3; // syncs in a row a download may fail before it's set aside
 const COLLECTION_LIST_MAX_AGE_MS = 7 * 24 * HOUR_MS;
 
 // Instagram only draws the collection grid in a tab you can see, so the
@@ -486,15 +491,17 @@ async function feedPage(ctx, source, maxId) {
 async function handleMedia(media, source, state) {
   const id = postId(media);
   const existing = state.posts.get(id);
+  // Posts set aside as undownloadable are only tried again on a Full re-check.
+  if (existing && existing.skipped && !state.fullScan) return 'known';
   let folder;
   let collectionId;
 
   if (source.kind === 'collection') {
-    if (existing && existing.collectionId) return 'known';
+    if (existing && existing.collectionId && !existing.skipped) return 'known';
     folder = source.folder;
     collectionId = source.id;
   } else {
-    if (existing) return 'known';
+    if (existing && !existing.skipped) return 'known';
     const ids = (media.saved_collection_ids || []).map(String);
     const match = state.collections.find((c) => ids.includes(c.id));
     const ignored = new Set(state.meta.ignoredCollectionIds || []);
@@ -527,7 +534,9 @@ async function handleMedia(media, source, state) {
     await savePost(record);
     state.posts.set(id, record);
     if (state.failedIds.delete(id)) state.run.failed = state.failedIds.size;
-    if (existing) {
+    if (state.meta.failCounts) delete state.meta.failCounts[id];
+    state.run.problems = (state.run.problems || []).filter((p) => p.id !== id);
+    if (existing && !existing.skipped) {
       await removeOldFiles(existing);
       state.run.moved++;
       return 'moved';
@@ -537,9 +546,29 @@ async function handleMedia(media, source, state) {
     return 'new';
   } catch (e) {
     if (e instanceof CancelError) throw e;
+    const reason = e.message || String(e);
+    const failCounts = (state.meta.failCounts ||= {});
+    failCounts[id] = (failCounts[id] || 0) + 1;
+    const giveUp = e.permanent || failCounts[id] >= MAX_ATTEMPTS;
+    const problems = (state.run.problems ||= []).filter((p) => p.id !== id);
+    if (problems.length < 200) problems.push({ id, code: media.code || null, reason, final: giveUp });
+    state.run.problems = problems;
+    if (giveUp) {
+      // Record it so later syncs don't keep retrying it (and re-reading whole feeds).
+      const record = {
+        id, code: media.code || null, username: (media.user && media.user.username) || null,
+        takenAt: media.taken_at || null, folder: null, collectionId: null, files: [],
+        skipped: true, reason, downloadedAt: Date.now(),
+      };
+      await savePost(record);
+      state.posts.set(id, record);
+      delete failCounts[id];
+      if (state.failedIds.delete(id)) state.run.failed = state.failedIds.size;
+      state.run.skipped = (state.run.skipped || 0) + (existing && existing.skipped ? 0 : 1);
+      return 'skipped';
+    }
     state.failedIds.add(id);
     state.run.failed = state.failedIds.size;
-    state.run.lastFailure = `${media.code || id}: ${e.message || e}`;
     return 'failed';
   }
 }
@@ -657,11 +686,16 @@ async function runSync({ auto = false, fullScan = false } = {}) {
     await saveMeta(state.meta);
 
     const { newPosts, moved, failed } = state.run;
-    const parts = [newPosts ? `${newPosts} new post${newPosts === 1 ? '' : 's'} downloaded` : 'No new posts. Everything is up to date'];
+    const skipped = state.run.skipped || 0;
+    const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+    const parts = [];
+    if (newPosts) parts.push(`${plural(newPosts, 'new post')} downloaded`);
     if (moved) parts.push(`${moved} moved from Unsorted into a collection`);
-    if (failed) parts.push(`${failed} failed and will be retried next sync`);
+    if (failed) parts.push(`${plural(failed, 'post')} failed and will be retried next sync`);
+    if (skipped) parts.push(`${plural(skipped, 'post')} couldn't be downloaded (see details)`);
+    if (!parts.length) parts.push('No new posts. Everything is up to date');
     await setStatus({ state: 'done', message: parts.join(' · ') + '.', run: state.run });
-    await setBadge(failed ? '!' : newPosts ? String(Math.min(newPosts, 999)) : '', failed ? '#d97706' : '#16a34a');
+    await setBadge(failed || skipped ? '!' : newPosts ? String(Math.min(newPosts, 999)) : '', failed || skipped ? '#d97706' : '#16a34a');
   } catch (e) {
     state.run.finishedAt = Date.now();
     state.meta.lastRun = state.run;

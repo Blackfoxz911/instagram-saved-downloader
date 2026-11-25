@@ -64,6 +64,14 @@ button.primary { flex: 1; background: var(--accent); border-color: var(--accent)
 button.danger { color: var(--danger); }
 button.danger.confirming { background: var(--danger); color: #fff; border-color: var(--danger); }
 
+.problems { margin-top: 10px; }
+.problems summary { color: var(--warn); }
+.problems ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 160px; overflow-y: auto; }
+.problems li { padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.problems li:last-child { border-bottom: 0; }
+.problems a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.problems .tag { font-size: 11px; color: var(--muted); margin-left: 4px; }
+
 .toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .hint { margin: 2px 0 0 24px; }
 

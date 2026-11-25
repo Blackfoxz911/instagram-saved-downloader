@@ -13,7 +13,7 @@
   <img alt="Chrome extension" src="https://img.shields.io/badge/Chrome-Extension-c13584?logo=googlechrome&logoColor=white">
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-833ab4">
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-fcaf45">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-e1306c">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-e1306c">
 </p>
 
 <p align="center">
@@ -136,6 +136,12 @@ Check you're still logged in to instagram.com. If you are, Instagram may have ch
 </details>
 
 <details>
+<summary><b>Some posts say they couldn't be downloaded.</b></summary>
+
+Open the **couldn't be downloaded** list in the popup. Each entry links to the post and says why. Usually the post was deleted or its account went private, so there's nothing left to download. Those posts are set aside and skipped on normal syncs. Press **Full re-check** under Settings to try them again.
+</details>
+
+<details>
 <summary><b>What about captions and comments?</b></summary>
 
 Only photos and videos are downloaded for now.
@@ -156,7 +162,7 @@ banner.png, screenshots.png, how-it-works.png   README images
 - Uses the same internal web API that instagram.com itself uses, called from an instagram.com tab so it runs on your existing session.
 - Each downloaded post is stored in `chrome.storage.local` under its Instagram ID. That record is what makes syncing possible.
 - An hourly `chrome.alarms` check starts a sync once about a day has passed. If Chrome was closed, it catches up on the next launch.
-- Failed downloads are retried on the next sync.
+- Failed downloads are retried on the next sync. A post that fails 3 syncs in a row, or has nothing left to download (deleted, or its account went private), is set aside so it can't slow every sync down. Set-aside posts are listed in the popup, and **Full re-check** tries them again.
 
 ## 🤝 Contributing
 
